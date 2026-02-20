@@ -37,8 +37,8 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 Name: "desktopicon"; Description: "Desktop-Verknüpfung erstellen"; GroupDescription: "Zusätzliche Aufgaben:"; Flags: checkedonce
 
 [Files]
-; Die Pro-EXE (enthält alle Abhängigkeiten)
-Source: "{#SourceExe}"; DestDir: "{app}"; Flags: ignoreversion
+; Die Pro-Dateien (Onedir-Bundle für maximale Stabilität)
+Source: "dist\LizenzGeneratorPro\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [InstallDelete]
 ; Löscht alle alten Dateien im Installationsverzeichnis vor dem Setup
