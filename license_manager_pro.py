@@ -335,7 +335,11 @@ class App(ctk.CTk):
         self._apply_saved_db_cfg()
 
         self.save_settings_btn = ctk.CTkButton(frame, text="DB Verbindung speichern & testen", command=self.save_db_settings)
-        self.save_settings_btn.grid(row=5, column=0, columnspan=2, padx=20, pady=20)
+        self.save_settings_btn.grid(row=5, column=0, columnspan=2, padx=20, pady=(20, 10))
+
+        self.show_pubkey_btn = ctk.CTkButton(frame, text="Öffentlichen Schlüssel (Public Key) anzeigen", 
+                                             command=self.show_public_key, fg_color="transparent", border_width=1)
+        self.show_pubkey_btn.grid(row=6, column=0, columnspan=2, padx=20, pady=10)
 
         return frame
 
@@ -439,6 +443,11 @@ class App(ctk.CTk):
         except Exception as e:
             messagebox.showerror("Fehler", f"Fehler beim Verifizieren:\n{e}")
 
+    def show_public_key(self):
+        msg = f"Dein öffentlicher Schlüssel (Public Key):\n\n{self.pub_key}\n\n"
+        msg += "Diesen Schlüssel benötigst du in deiner Software, um die Signaturen zu prüfen."
+        messagebox.showinfo("Public Key", msg)
+
     def clear_form(self):
         self.customer_entry.delete(0, tk.END)
         self.product_entry.delete(0, tk.END)
@@ -477,8 +486,17 @@ class App(ctk.CTk):
                 row = ctk.CTkFrame(self.db_list_frame)
                 row.pack(fill="x", padx=5, pady=5)
                 
-                info = f"{l['customer']} | {l['product']} | {l['license_key']}"
-                ctk.CTkLabel(row, text=info, anchor="w").pack(side="left", padx=10, fill="x", expand=True)
+                exp_status = ""
+                if l['expires_at']:
+                    try:
+                        if datetime.strptime(str(l['expires_at']), "%Y-%m-%d").date() < datetime.now().date():
+                            exp_status = " (⌛ ABGELAUFEN)"
+                    except: pass
+
+                info = f"{l['customer']} | {l['product']} | {l['license_key']}\n"
+                info += f"Sitze: {l['seats']} | HWID: {l['hwid'] or '-'} | Ablauf: {l['expires_at'] or 'Kein'}{exp_status}"
+                
+                ctk.CTkLabel(row, text=info, anchor="w", justify="left").pack(side="left", padx=10, pady=5, fill="x", expand=True)
                 
                 status_color = "red" if l['is_revoked'] else "green"
                 status_text = "Gesperrt" if l['is_revoked'] else "Aktiv"

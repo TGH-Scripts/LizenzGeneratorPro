@@ -1,64 +1,67 @@
 # Lizenz-Generator (Python)
 
-Ein kleines Desktop-Programm zum Erstellen und Prüfen signierter Lizenzdateien – mit optionaler MySQL/MariaDB-Datenbankanbindung.
+Ein professionelles Desktop-Programm zum Erstellen und Prüfen signierter Lizenzdateien – jetzt in der **Professional-Version** mit ECDSA-Verschlüsselung, Hardware-Bindung (HWID) und automatisierter Build-Pipeline.
 
-## Funktionen
+## Versionen
 
-- Lizenzschlüssel generieren
-- Lizenzdaten eingeben (Kunde, Produkt, Sitze, Datum)
-- Lizenz als `.license.json` speichern
-- Lizenzdatei mit Secret verifizieren
-- Ablaufdatum prüfen
-- **Neu:** Ausgestellte Lizenzen automatisch in eine MySQL/MariaDB-Datenbank eintragen
+### Standard (`license_manager.py`)
+- **Signatur**: HMAC-SHA256 (Shared Secret)
+- **Datenbank**: MySQL/MariaDB (optional)
+- **UI**: Klassisches Tkinter/ttk
 
-## Starten
+### Professional (`license_manager_pro.py`) [AKTUELL]
+- **Signatur**: **ECDSA (P-256)** (Asymmetrische Verschlüsselung)
+- **HWID-Schutz**: Bindet Lizenzen an die Hardware (CPU/HDD) des Kunden.
+- **Modernes UI**: Basierend auf `customtkinter` (Dark/Light Mode).
+- **Auto-Update**: Sucht Updates direkt über die GitHub-API.
+- **Verifizierung**: Integriertes Tool zum Prüfen von Lizenzdateien inkl. HWID-Check.
 
-Voraussetzung: Python 3.10+ auf Windows.
+## Installation & Start
 
+1. **Abhängigkeiten installieren**:
+   ```powershell
+   pip install customtkinter requests cryptography wmi mysql-connector-python
+   ```
+
+2. **Programm starten**:
+   ```powershell
+   # Pro-Version (Empfohlen)
+   python .\license_manager_pro.py
+
+   # Standard-Version
+   python .\license_manager.py
+   ```
+
+## Funktionen (Pro-Version)
+
+- **Generator**: Erstellt kryptografisch signierte `.license.json` Dateien.
+- **Datenbank**: Alle Lizenzen werden (wenn aktiviert) in einer MySQL-Datenbank archiviert.
+- **Verifizierung**: Prüft Signaturen, Ablaufdaten und Hardware-Berechtigungen.
+- **Sicherheit**: Verwendet asymmetrische Kryptografie. Der Private Key bleibt beim Generator, der Public Key wird in die Lizenz eingebettet.
+
+## Build-Automatisierung
+
+Für die Verteilung steht ein PowerShell-Skript bereit:
 ```powershell
-python .\license_manager.py
+.\build_pro.ps1
 ```
+Dies automatisiert:
+1. Erstellung der EXE via PyInstaller.
+2. Kompilierung des Installers (`installer_pro.iss`) via Inno Setup.
 
 ## Datenbankanbindung
 
-### Voraussetzung
+1. Reiter **„Einstellungen"** öffnen.
+2. Host, User, Passwort und Datenbank eintragen.
+3. **„Speichern & Testen"** klicken. Die Tabelle `licenses` wird automatisch angelegt.
 
-```powershell
-pip install mysql-connector-python
-```
+Ab sofort wird jede neu ausgestellte Lizenz in der Datenbank gespeichert und kann in der **„Datenbank-Übersicht"** verwaltet (z.B. gesperrt) werden.
 
-### Einrichtung
+## Technik & Sicherheit
 
-1. Reiter **„Datenbank"** öffnen
-2. Checkbox **„Datenbank aktivieren"** setzen
-3. Host, Port, Benutzer, Passwort und Datenbankname eintragen
-4. **„Verbindung testen"** klicken – die Tabelle `licenses` wird automatisch angelegt
-5. **„Einstellungen übernehmen"** klicken
+- **Asymmetrische Signatur**: ECDSA mit dem Kurven-Typ P-256.
+- **HWID**: Besteht aus einem SHA256-Hash der Prozessor-ID und der Festplatten-Seriennummer.
+- **Lizenzformat**: JSON-Datei mit eingebettetem Public Key zur einfachen Verifizierung im Zielprogramm.
 
-Ab sofort wird jede neu ausgestellte Lizenz zusätzlich zur JSON-Datei auch in der Datenbank gespeichert.
-
-### Tabellenstruktur (`licenses`)
-
-| Spalte        | Typ           | Beschreibung                        |
-|---------------|---------------|-------------------------------------|
-| `id`          | INT (PK)      | Auto-Increment                      |
-| `license_key` | VARCHAR(64)   | Eindeutiger Lizenzschlüssel (UNIQUE)|
-| `customer`    | VARCHAR(255)  | Kundenname                          |
-| `product`     | VARCHAR(255)  | Produktname                         |
-| `seats`       | INT           | Anzahl der Sitze                    |
-| `issued_at`   | DATE          | Ausstellungsdatum                   |
-| `expires_at`  | DATE (NULL)   | Ablaufdatum (optional)              |
-| `notes`       | TEXT          | Notizen                             |
-| `algorithm`   | VARCHAR(32)   | Signaturalgorithmus                 |
-| `signature`   | VARCHAR(512)  | HMAC-SHA256-Signatur                |
-| `created_at`  | DATETIME      | Eintragedatum in DB                 |
-
-## Hinweise
-
-- Das **Secret** muss sicher aufbewahrt werden.
-- Nur mit demselben Secret kann eine Lizenz korrekt geprüft werden.
-- Eine Lizenzdatei enthält:
-  - `license`: die eigentlichen Lizenzdaten
-  - `signature`: HMAC-SHA256-Signatur
-  - `algorithm`: verwendeter Signatur-Algorithmus
-- Die Datenbankanbindung ist **optional** – das Tool funktioniert auch ohne sie.
+---
+Entwickelt von **TGH-Scripts**.
