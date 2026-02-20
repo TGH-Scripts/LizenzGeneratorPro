@@ -85,6 +85,9 @@ class App(ctk.CTk):
         # Init view
         self.show_generator()
 
+        # Startup update check (silent)
+        threading.Thread(target=lambda: self._check_for_updates(manual=False), daemon=True).start()
+
     def _load_generator_keys(self):
         """Loads or generates the ECC keys for the generator."""
         key_file = os.path.join(self.data_dir, "generator_keys.json")
@@ -183,9 +186,9 @@ class App(ctk.CTk):
     # --- Update Logic ---
     def check_updates_thread(self):
         self.update_btn.configure(text="Suche...", state="disabled")
-        threading.Thread(target=self._check_for_updates, daemon=True).start()
+        threading.Thread(target=lambda: self._check_for_updates(manual=True), daemon=True).start()
 
-    def _check_for_updates(self):
+    def _check_for_updates(self, manual=True):
         try:
             url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
             response = requests.get(url, timeout=10)
@@ -205,16 +208,19 @@ class App(ctk.CTk):
                         self.after(0, lambda u=download_url, v=latest_version: self._ask_to_update(u, v))
                     else:
                         self.after(0, lambda: messagebox.showinfo("Update", f"Neue Version {latest_version} verfügbar, aber keine Setup-Datei gefunden."))
+                elif manual:
+                    self.after(0, lambda: messagebox.showinfo("Update", f"Du nutzt bereits die aktuellste Version ({APP_VERSION})."))
+            elif manual:
+                if response.status_code == 404:
+                    self.after(0, lambda: messagebox.showinfo("Update", "Bisher wurden noch keine Updates auf GitHub veröffentlicht."))
                 else:
-                    self.after(0, lambda: messagebox.showinfo("Update", "Du nutzt bereits die aktuellste Version."))
-            elif response.status_code == 404:
-                self.after(0, lambda: messagebox.showinfo("Update", "Bisher wurden noch keine Updates auf GitHub veröffentlicht."))
-            else:
-                self.after(0, lambda: messagebox.showerror("Update", f"Fehler beim Suchen nach Updates: {response.status_code}"))
+                    self.after(0, lambda: messagebox.showerror("Update", f"Fehler beim Suchen nach Updates: {response.status_code}"))
         except Exception as e:
-            self.after(0, lambda ex=e: messagebox.showerror("Update", f"Fehler: {ex}"))
+            if manual:
+                self.after(0, lambda ex=e: messagebox.showerror("Update", f"Fehler: {ex}"))
         finally:
-            self.after(0, lambda: self.update_btn.configure(text="Update suchen", state="normal"))
+            if manual:
+                self.after(0, lambda: self.update_btn.configure(text="Update suchen", state="normal"))
 
     def _is_newer(self, latest, current):
         try:
