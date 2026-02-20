@@ -40,6 +40,10 @@ Name: "desktopicon"; Description: "Desktop-Verknüpfung erstellen"; GroupDescrip
 ; Die Pro-EXE (enthält alle Abhängigkeiten)
 Source: "{#SourceExe}"; DestDir: "{app}"; Flags: ignoreversion
 
+[InstallDelete]
+; Löscht alle alten Dateien im Installationsverzeichnis vor dem Setup
+Type: filesandordirs; Name: "{app}\*"
+
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
 Name: "{autodesktop}\{#AppName}";  Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
