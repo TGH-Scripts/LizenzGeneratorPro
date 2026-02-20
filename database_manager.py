@@ -81,7 +81,7 @@ class DatabaseManager:
             raise RuntimeError("mysql-connector-python ist nicht installiert.")
         if not self._cfg:
             raise RuntimeError("Keine Datenbankverbindung konfiguriert.")
-        return mysql.connector.connect(**self._cfg)
+        return mysql.connector.connect(**self._cfg, use_pure=True)
 
     def test_connection(self) -> str:
         conn = self._connect()
