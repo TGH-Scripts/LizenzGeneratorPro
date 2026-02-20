@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Application Data (Private)
+generator_keys.json
+.db_config.json
+*.license.json
+
+# IDEs
+.vscode/
+.idea/
